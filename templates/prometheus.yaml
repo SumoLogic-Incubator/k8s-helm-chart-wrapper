@@ -1,0 +1,115 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  labels:
+    app: {{ .Release.Name }}
+  name: {{ .Release.Name }}-prometheus
+  namespace: {{ .Release.Namespace }}
+spec:
+  version: v2.22.1
+  containers:
+  - env:
+    - name: COLLECTION_SERVICE
+      valueFrom:
+        configMapKeyRef:
+          key: fluentdMetrics
+          name: sumologic-configmap
+    - name: COLLECTION_NAMESPACE
+      valueFrom:
+        configMapKeyRef:
+          key: fluentdNamespace
+          name: sumologic-configmap
+    name: config-reloader
+  enableAdminAPI: false
+{{- if .Values.prometheusSpec.externalUrl }}
+  externalUrl: "{{ .Values.prometheusSpec.externalUrl }}"
+{{- end }}
+  listenLocal: false
+  logFormat: logfmt
+  logLevel: info
+  paused: false
+  podMonitorSelector: {}
+  portName: web
+  serviceAccountName: {{ .Release.Name }}-prometheus
+  remoteWrite:
+  # kube state metrics
+  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.state
+    remoteTimeout: 5s
+    writeRelabelConfigs:
+      - action: keep
+        regex: kube-state-metrics;{{ include "regex.metric.kubeStateMetrics" . }}
+        sourceLabels: [job, __name__]
+  # kubelet metrics
+  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.kubelet
+    remoteTimeout: 5s
+    writeRelabelConfigs:
+      - action: keep
+        regex: kubelet;{{ include "regex.metric.kubelet" . }}
+        sourceLabels: [job, __name__]
+  # cadvisor container metrics
+  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.container
+    remoteTimeout: 5s
+    writeRelabelConfigs:
+      - action: keep
+        regex: kubelet;.+;{{ include "regex.metric.cadvisor.container" . }}
+        sourceLabels: [job, container, __name__]
+  # cadvisor aggregate container metrics
+  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.container
+    remoteTimeout: 5s
+    writeRelabelConfigs:
+      - action: keep
+        regex: kubelet;{{ include "regex.metric.cadvisor.aggregate" . }}
+        sourceLabels: [job,__name__]
+{{- if .Values.prometheusSpec.additionalRemoteWrite }}
+{{ toYaml .Values.prometheusSpec.additionalRemoteWrite| indent 2 }}
+{{- end }}
+  replicas: 1
+{{- if .Values.prometheusSpec.resources }}
+  resources:
+{{ toYaml .Values.prometheusSpec.resources | indent 4 }}
+{{- end }}
+{{- if .Values.prometheusSpec.scrapeInterval }}
+  scrapeInterval: "{{ .Values.prometheusSpec.scrapeInterval }}"
+{{ else }}
+  scrapeInterval: "60s"
+{{- end }}
+{{- if .Values.prometheusSpec.walCompression }}
+  walCompression: {{ .Values.prometheusSpec.walCompression }}
+{{- end }}
+
+{{- if .Values.prometheusSpec.retention }}
+  retention: {{ .Values.prometheusSpec.retention }}
+{{ else }}
+  retention: 2d
+{{ end }}
+  routePrefix: /
+
+{{- if .Values.prometheusSpec.ruleNamespaceSelector }}
+  ruleNamespaceSelector:
+{{ toYaml .Values.prometheusSpec.ruleNamespaceSelector | indent 4 }}
+{{- end }}
+
+{{- if .Values.prometheusSpec.ruleSelector }}
+  ruleSelector:
+{{ toYaml .Values.prometheusSpec.ruleSelector | indent 4 }}
+{{- end }}
+
+  securityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+
+{{- if .Values.prometheusSpec.serviceMonitorNamespaceSelector }}
+  serviceMonitorNamespaceSelector:
+{{ toYaml .Values.prometheusSpec.serviceMonitorNamespaceSelector | indent 4 }}
+{{- end }}
+
+{{- if .Values.prometheusSpec.serviceMonitorSelector }}
+  serviceMonitorSelector:
+{{ toYaml .Values.prometheusSpec.serviceMonitorSelector | indent 4 }}
+{{- end }}
+
+{{- if .Values.prometheusSpec.storageSpec }}
+  storage:
+{{ toYaml .Values.prometheusSpec.storageSpec | indent 4 }}
+{{- end }}

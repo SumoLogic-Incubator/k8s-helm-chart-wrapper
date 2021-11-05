@@ -1,0 +1,91 @@
+## Fill in all the configuration options that you normally would for
+## https://github.com/SumoLogic/sumologic-kubernetes-collection/tree/main/deploy/helm/sumologic
+sumologic:
+  sumologic:
+    # accessId: ""
+    # accessKey: ""
+    # clusterName: ""
+
+  ## Keep this disabled to prevent deploying kube-prometheus-stack subchart.
+  kube-prometheus-stack:
+    enabled: false
+
+## Customize the Prometheus deployment
+prometheusSpec:
+  scrapeInterval: "30s"
+  retention: 1d
+  resources:
+    limits:
+      cpu: "2"
+      memory: 8Gi
+    requests:
+      cpu: "2"
+      memory: 8Gi
+
+  ## Namespaces to be selected for PrometheusRules discovery.
+  ## If nil, select own namespace. Namespaces to be selected for ServiceMonitor discovery.
+  ## See https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#namespaceselector for usage
+  ##
+  ruleNamespaceSelector: {}
+
+  ## PrometheusRules to be selected for target discovery.
+  ## If {}, select all ServiceMonitors
+  ##
+  ## Example which select all prometheusrules resources
+  ## with label "prometheus" with values any of "example-rules" or "example-rules-2"
+  # ruleSelector:
+  #   matchExpressions:
+  #     - key: prometheus
+  #       operator: In
+  #       values:
+  #         - example-rules
+  #         - example-rules-2
+  #
+  ## Example which select all prometheusrules resources with label "role" set to "example-rules"
+  # ruleSelector:
+  #   matchLabels:
+  #     role: example-rules
+  ruleSelector:
+    matchLabels:
+      k8c.collection.enabledx: "true"
+
+  ## Namespaces to be selected for ServiceMonitor discovery.
+  ## See https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#namespaceselector for usage
+  ##
+  serviceMonitorNamespaceSelector: {}
+
+  ## ServiceMonitors to be selected for target discovery.
+  ## If {}, select all ServiceMonitors
+  ##
+  ## Example which selects ServiceMonitors with label "prometheus" set to "somelabel"
+  # serviceMonitorSelector:
+  #   matchLabels:
+  #     prometheus: somelabel
+  serviceMonitorSelector:
+    matchLabels:
+      k8c.collection.enabledx: "true"
+
+  ## Specify additional remote write rules.
+  ## For instance:
+  ##
+  # additionalRemoteWrite:
+  # - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics
+  #   remoteTimeout: 5s
+  #   writeRelabelConfigs:
+  #     - action: keep
+  #       regex: (?:my_custom_metric_regex.*)
+  #       sourceLabels: [__name__]
+  additionalRemoteWrite: {}
+
+  kubeStateMetrics:
+    ## Namespace in which kube-state-metrics is deployed. Required.
+    namespace: ""
+
+    ## ServiceMonitor selector for kube-state-metrics deployment's pods.
+    ## Typically using 2 labels for maching would be enough:
+    ## * app.kubernetes.io/instance
+    ## * app.kubernetes.io/name
+    ##
+    ## If one does not specify that only matching by
+    ## app.kubernetes.io/name=kube-state-metrics is being performed.
+    selector: {}

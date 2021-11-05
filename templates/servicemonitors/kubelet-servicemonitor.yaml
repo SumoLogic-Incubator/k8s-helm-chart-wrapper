@@ -1,0 +1,86 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8c.collection.enabledx: "true"
+  name: {{ .Release.Name }}-kubelet
+  namespace: {{ $.Release.Namespace }}
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
+    port: https-metrics
+    metricRelabelings:
+    ## kubelet metrics:
+    ## kubelet_docker_operations_errors
+    ## kubelet_docker_operations_errors_total
+    ## kubelet_docker_operations_duration_seconds_count
+    ## kubelet_docker_operations_duration_seconds_sum
+    ## kubelet_runtime_operations_duration_seconds_count
+    ## kubelet_runtime_operations_duration_seconds_sum
+    ## kubelet_running_container_count
+    ## kubelet_running_containers
+    ## kubelet_running_pod_count
+    ## kubelet_running_pods
+    ## kubelet_docker_operations_latency_microseconds
+    ## kubelet_docker_operations_latency_microseconds_count
+    ## kubelet_docker_operations_latency_microseconds_sum
+    ## kubelet_runtime_operations_latency_microseconds
+    ## kubelet_runtime_operations_latency_microseconds_count
+    ## kubelet_runtime_operations_latency_microseconds_sum
+    - action: keep
+      regex: {{ include "regex.metric.kubelet" . }}
+      sourceLabels: [__name__]
+    relabelings:
+    - sourceLabels:
+      - __metrics_path__
+      targetLabel: metrics_path
+    scheme: https
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      insecureSkipVerify: true
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
+    metricRelabelings:
+    ## cadvisor container metrics
+    ## container_cpu_usage_seconds_total
+    ## container_fs_limit_bytes
+    ## container_fs_usage_bytes
+    ## container_memory_working_set_bytes
+    ## container_cpu_cfs_throttled_seconds_total
+    ##
+    ## cadvisor aggregate container metrics
+    ## container_network_receive_bytes_total
+    ## container_network_transmit_bytes_total
+    - action: keep
+      regex: {{ include "regex.metric.cadvisor.all" . }}
+      sourceLabels: [__name__]
+    - action: drop
+      sourceLabels: [container]
+      regex: POD
+    - action: labeldrop
+      regex: (id|name)
+    - action: replace
+      regex: (.*)
+      replacement: $1
+      separator: ;
+      sourceLabels:
+      - node
+      targetLabel: instance
+    path: /metrics/cadvisor
+    port: https-metrics
+    relabelings:
+    - sourceLabels:
+      - __metrics_path__
+      targetLabel: metrics_path
+    scheme: https
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      insecureSkipVerify: true
+  jobLabel: k8s-app
+  namespaceSelector:
+    matchNames:
+    - kube-system
+  selector:
+    matchLabels:
+      k8s-app: kubelet
