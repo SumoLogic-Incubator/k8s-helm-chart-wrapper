@@ -47,7 +47,7 @@ prometheusSpec:
   #     role: example-rules
   ruleSelector:
     matchLabels:
-      k8c.collection.enabledx: "true"
+      k8c.collection.enabled: "true"
 
   ## Namespaces to be selected for ServiceMonitor discovery.
   ## See https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#namespaceselector for usage
@@ -63,7 +63,7 @@ prometheusSpec:
   #     prometheus: somelabel
   serviceMonitorSelector:
     matchLabels:
-      k8c.collection.enabledx: "true"
+      k8c.collection.enabled: "true"
 
   ## Specify additional remote write rules.
   ## For instance:

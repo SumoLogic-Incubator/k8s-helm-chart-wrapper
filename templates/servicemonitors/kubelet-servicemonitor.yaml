@@ -2,7 +2,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    k8c.collection.enabledx: "true"
+    k8c.collection.enabled: "true"
   name: {{ .Release.Name }}-kubelet
   namespace: {{ $.Release.Namespace }}
 spec:
