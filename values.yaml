@@ -5,6 +5,20 @@ sumologic:
     # accessId: ""
     # accessKey: ""
     # clusterName: ""
+  
+  fluentd:
+    image:
+      tag: 1.12.2-sumo-6
+    metrics:
+      # The below `record_transformer` snippet adds a `k8s.cronjob.name` label on all metrics that describe cronjob pods.
+      extraFilterPluginConf: |-
+        <filter prometheus.metrics**>
+          @type record_transformer
+          enable_ruby
+          <record>
+            k8s.cronjob.name ${record.dig("pod_labels", "job-name")&.sub(/-\d+$/, '')}
+          </record>
+        </filter>
 
   ## Keep this disabled to prevent deploying kube-prometheus-stack subchart.
   kube-prometheus-stack:
