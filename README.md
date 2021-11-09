@@ -10,3 +10,4 @@ so that it can be deployed to a cluster with an existing Prometheus Operator dep
 | Option                                      | Description                                       |
 |---------------------------------------------|---------------------------------------------------|
 | `prometheusSpec.kubeStateMetrics.namespace` | Namespace in which kube-state-metrics is deployed |
+| `prometheusSpec.nodeExporter.namespace`     | Namespace in which node-exporter is deployed      |

@@ -67,6 +67,13 @@ spec:
       - action: keep
         regex: kubelet;{{ include "regex.metric.cadvisor.aggregate" . }}
         sourceLabels: [job,__name__]
+  # node-exporter metrics
+  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.node
+    remoteTimeout: 5s
+    writeRelabelConfigs:
+      - action: keep
+        regex: node-exporter;{{ include "regex.metric.nodeExporter" . }}
+        sourceLabels: [job, __name__]
 {{- if .Values.prometheusSpec.additionalRemoteWrite }}
 {{ toYaml .Values.prometheusSpec.additionalRemoteWrite| indent 2 }}
 {{- end }}

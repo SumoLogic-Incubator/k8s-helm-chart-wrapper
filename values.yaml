@@ -94,14 +94,25 @@ prometheusSpec:
   kubeStateMetrics:
     ## Namespace in which kube-state-metrics is deployed. Required.
     namespace: ""
-
     ## ServiceMonitor selector for kube-state-metrics deployment's pods.
     ## Typically using 2 labels for maching would be enough:
     ## * app.kubernetes.io/instance
     ## * app.kubernetes.io/name
     ##
-    ## If one does not specify that only matching by
+    ## If one does not specify that, only matching by
     ## app.kubernetes.io/name=kube-state-metrics is being performed.
+    selector: {}
+
+  nodeExporter:
+    ## Namespace in which node-exporter is deployed. Required.
+    namespace: ""
+    ## ServiceMonitor selector for node-exporter's pods.
+    ## Typically using 2 labels for maching would be enough:
+    ## * app
+    ## * release
+    ##
+    ## If one does not specify that, only matching by
+    ## app=prometheus-node-exporter is being performed.
     selector: {}
 
   ## AdditionalScrapeConfigs allows specifying additional Prometheus scrape configurations. Scrape configurations
