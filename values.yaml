@@ -27,7 +27,7 @@ sumologic:
 ## Customize the Prometheus deployment
 prometheusSpec:
   scrapeInterval: "30s"
-  retention: 1d
+  retention: 6h
   resources:
     limits:
       cpu: "2"
@@ -91,6 +91,11 @@ prometheusSpec:
   #       sourceLabels: [__name__]
   additionalRemoteWrite: {}
 
+  kubelet:
+    ## Regex which metrics names have to match in order to be scraped and forwarded to Sumo
+    ## For default regex look into templates/_helpers.tpl
+    metricsRegex: ""
+
   kubeStateMetrics:
     ## Namespace in which kube-state-metrics is deployed. Required.
     namespace: ""
@@ -102,8 +107,14 @@ prometheusSpec:
     ## If one does not specify that, only matching by
     ## app.kubernetes.io/name=kube-state-metrics is being performed.
     selector: {}
+    ## Regex which metrics names have to match in order to be scraped and forwarded to Sumo
+    ## For default regex look into templates/_helpers.tpl
+    metricsRegex: ""
 
   nodeExporter:
+    ## Regex which metrics names have to match in order to be scraped and forwarded to Sumo
+    ## For default regex look into templates/_helpers.tpl
+    metricsRegex: ""
     ## Namespace in which node-exporter is deployed. Required.
     namespace: ""
     ## ServiceMonitor selector for node-exporter's pods.
