@@ -21,7 +21,15 @@ Example Usage:
 
 */}}
 {{- define "regex.metric.cadvisor.container" -}}
-(?:container_cpu_usage_seconds_total|container_memory_working_set_bytes|container_fs_usage_bytes|container_fs_limit_bytes)
+{{- if .Values.prometheusSpec.cadvisor.containerMetricsRegex }}
+{{ .Values.prometheusSpec.cadvisor.containerMetricsRegex }}
+{{- else -}}
+(?:{{- include "regex.metric.cadvisor._container" . }})
+{{- end -}}
+{{- end -}}
+
+{{- define "regex.metric.cadvisor._container" -}}
+container_cpu_usage_seconds_total|container_memory_working_set_bytes|container_memory_usage_bytes|container_fs_usage_bytes|container_fs_limit_bytes
 {{- end -}}
 
 {{/*
@@ -32,7 +40,15 @@ Example Usage:
 
 */}}
 {{- define "regex.metric.cadvisor.aggregate" -}}
-(?:container_network_receive_bytes_total|container_network_transmit_bytes_total)
+{{- if .Values.prometheusSpec.cadvisor.aggregateMetricsRegex }}
+{{ .Values.prometheusSpec.cadvisor.aggregateMetricsRegex }}
+{{- else -}}
+(?:{{- include "regex.metric.cadvisor._aggregate" . }})
+{{- end -}}
+{{- end -}}
+
+{{- define "regex.metric.cadvisor._aggregate" -}}
+container_network_receive_bytes_total|container_network_transmit_bytes_total
 {{- end -}}
 
 {{/*
@@ -43,7 +59,7 @@ Example Usage:
 
 */}}
 {{- define "regex.metric.cadvisor.all" -}}
-(?:container_cpu_usage_seconds_total|container_memory_working_set_bytes|container_fs_usage_bytes|container_fs_limit_bytes|container_cpu_cfs_throttled_seconds_total|container_network_receive_bytes_total|container_network_transmit_bytes_total)
+{{ printf "(?:%s|%s)" ( include "regex.metric.cadvisor._container" . ) ( include "regex.metric.cadvisor._aggregate" . ) }}
 {{- end -}}
 
 {{/*

@@ -31,6 +31,7 @@ spec:
   podMonitorSelector: {}
   portName: web
   serviceAccountName: {{ .Release.Name }}-prometheus
+  replicas: 1
 
 {{- if .Values.prometheusSpec.additionalScrapeConfigs }}
   additionalScrapeConfigs:
@@ -45,27 +46,20 @@ spec:
     writeRelabelConfigs:
       - action: keep
         regex: kube-state-metrics;{{ include "regex.metric.kubeStateMetrics" . }}
-        sourceLabels: [job, __name__]
+        sourceLabels: [job,__name__]
   # kubelet metrics
   - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.kubelet
     remoteTimeout: 5s
     writeRelabelConfigs:
       - action: keep
         regex: kubelet;{{ include "regex.metric.kubelet" . }}
-        sourceLabels: [job, __name__]
-  # cadvisor container metrics
+        sourceLabels: [job,__name__]
+  # cadvisor metrics
   - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.container
     remoteTimeout: 5s
     writeRelabelConfigs:
       - action: keep
-        regex: kubelet;.+;{{ include "regex.metric.cadvisor.container" . }}
-        sourceLabels: [job, container, __name__]
-  # cadvisor aggregate container metrics
-  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.container
-    remoteTimeout: 5s
-    writeRelabelConfigs:
-      - action: keep
-        regex: kubelet;{{ include "regex.metric.cadvisor.aggregate" . }}
+        regex: kubelet;{{ include "regex.metric.cadvisor.all" . }}
         sourceLabels: [job,__name__]
   # node-exporter metrics
   - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.node
@@ -73,11 +67,11 @@ spec:
     writeRelabelConfigs:
       - action: keep
         regex: node-exporter;{{ include "regex.metric.nodeExporter" . }}
-        sourceLabels: [job, __name__]
+        sourceLabels: [job,__name__]
 {{- if .Values.prometheusSpec.additionalRemoteWrite }}
 {{ toYaml .Values.prometheusSpec.additionalRemoteWrite| indent 2 }}
 {{- end }}
-  replicas: 1
+
 {{- if .Values.prometheusSpec.resources }}
   resources:
 {{ toYaml .Values.prometheusSpec.resources | indent 4 }}

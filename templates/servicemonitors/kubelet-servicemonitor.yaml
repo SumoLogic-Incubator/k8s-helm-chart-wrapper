@@ -42,6 +42,10 @@ spec:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
     honorLabels: true
     metricRelabelings:
+    # Drop container metrics with container tag set to an empty string
+    - action: drop
+      sourceLabels: [__name__,container]
+      regex: {{ include "regex.metric.cadvisor.container" . }};$
     ## cadvisor container metrics
     ## container_cpu_usage_seconds_total
     ## container_fs_limit_bytes

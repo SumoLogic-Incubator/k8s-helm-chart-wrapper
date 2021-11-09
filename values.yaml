@@ -96,6 +96,19 @@ prometheusSpec:
     ## For default regex look into templates/_helpers.tpl
     metricsRegex: ""
 
+  cadvisor:
+    ## Regex which metrics names have to match in order to be scraped and forwarded to Sumo
+    ## For default regex look into templates/_helpers.tpl
+    ##
+    ## Because the container metrics and aggregate metrics are being treated a bit
+    ## differently we separate those 2 regexes. One of the reasons is that we drop
+    ## the time series for container metrics which do not have a container tag
+    ## attached to it.
+    containerMetricsRegex: ""
+    ## Regex which metrics names have to match in order to be scraped and forwarded to Sumo
+    ## For default regex look into templates/_helpers.tpl
+    aggregateMetricsRegex: ""
+
   kubeStateMetrics:
     ## Namespace in which kube-state-metrics is deployed. Required.
     namespace: ""
