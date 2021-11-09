@@ -1,0 +1,11 @@
+{{- if .Values.prometheusSpec.additionalScrapeConfigs }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-prometheus-scrape-confg
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}-prometheus-scrape-confg
+data:
+  additional-scrape-configs.yaml: {{ tpl (toYaml .Values.prometheusSpec.additionalScrapeConfigs) $ | b64enc | quote }}
+{{- end }}
