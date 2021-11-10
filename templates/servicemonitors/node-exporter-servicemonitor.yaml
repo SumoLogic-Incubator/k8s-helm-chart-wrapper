@@ -2,9 +2,9 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    app: {{ include "release.name" . }}-collection-node-exporter
+    app: {{ include "sumologic.fullname" . }}-collection-node-exporter
     k8c.collection.enabled: "true"
-  name: {{ include "release.name" . }}-collection-node-exporter
+  name: {{ include "sumologic.fullname" . }}-collection-node-exporter
   namespace: {{ .Release.Namespace }}
 spec:
   endpoints:

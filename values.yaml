@@ -1,6 +1,9 @@
 ## Fill in all the configuration options that you normally would for
 ## https://github.com/SumoLogic/sumologic-kubernetes-collection/tree/main/deploy/helm/sumologic
 sumologic:
+  nameOverride: ""
+  fullnameOverride: ""
+
   sumologic:
     # accessId: ""
     # accessKey: ""
@@ -23,6 +26,15 @@ sumologic:
   ## Keep this disabled to prevent deploying kube-prometheus-stack subchart.
   kube-prometheus-stack:
     enabled: false
+
+  fluent-bit:
+    ## fluent-bit's subchart name overrides
+    nameOverride: ""
+    fullnameOverride: ""
+
+## This chart's names overrides
+nameOverride: ""
+fullnameOverride: ""
 
 ## Customize the Prometheus deployment
 prometheusSpec:

@@ -1,5 +1,14 @@
-{{- define "release.name" -}}
-{{- .Release.Name | trunc 32 | trimSuffix "-" }}
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+{{- define "sumologic.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -182,7 +191,7 @@ logLevel: info
 paused: false
 podMonitorSelector: {}
 portName: web
-serviceAccountName: {{ .Release.Name }}-prometheus
+serviceAccountName: {{ include "sumologic.fullname" . }}-prometheus
 replicas: 1
 
 {{- if .Values.prometheusSpec.resources }}

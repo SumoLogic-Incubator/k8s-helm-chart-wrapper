@@ -2,8 +2,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
   labels:
-    app: {{ include "release.name" . }}
-  name: {{ include "release.name" . }}-prometheus
+    app: {{ include "sumologic.fullname" . }}
+  name: {{ include "sumologic.fullname" . }}-prometheus
   namespace: {{ .Release.Namespace }}
 spec:
 {{ include "prometheus.defaultSpec" . | indent 2 }}
@@ -18,7 +18,7 @@ spec:
 
 {{- if .Values.prometheusSpec.additionalScrapeConfigs }}
   additionalScrapeConfigs:
-    name: {{ include "release.name" . }}-prometheus-scrape-confg
+    name: {{ include "sumologic.fullname" . }}-prometheus-scrape-confg
     key: additional-scrape-configs.yaml
 {{- end }}
 

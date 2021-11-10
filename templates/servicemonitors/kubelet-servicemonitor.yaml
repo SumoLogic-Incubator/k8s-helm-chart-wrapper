@@ -3,7 +3,7 @@ kind: ServiceMonitor
 metadata:
   labels:
     k8c.collection.enabled: "true"
-  name: {{ include "release.name" . }}-kubelet
+  name: {{ include "sumologic.fullname" . }}-kubelet
   namespace: {{ .Release.Namespace }}
 spec:
   endpoints:

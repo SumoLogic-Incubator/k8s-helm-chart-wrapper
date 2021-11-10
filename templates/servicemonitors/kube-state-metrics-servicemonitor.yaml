@@ -3,7 +3,7 @@ kind: ServiceMonitor
 metadata:
   labels:
     k8c.collection.enabled: "true"
-  name: {{ include "release.name" . }}-kube-state-metrics
+  name: {{ include "sumologic.fullname" . }}-kube-state-metrics
   namespace: {{ $.Release.Namespace }}
 spec:
   endpoints:

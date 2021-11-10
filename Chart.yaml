@@ -1,11 +1,11 @@
 apiVersion: v2
 name: sumologic
-version: 0.2.2
+version: 0.3.0
 description: |
     Wraps the upstream sumologic-kubernetes-collection for use with clusters
     with prometheus operator already preinstalled.
 
 dependencies:
   - name: sumologic
-    version: 2.1.6
+    version: 2.1.7-rc.1
     repository: https://sumologic.github.io/sumologic-kubernetes-collection
