@@ -2,110 +2,20 @@ apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
   labels:
-    app: {{ .Release.Name }}
-  name: {{ .Release.Name }}-prometheus
+    app: {{ include "release.name" . }}
+  name: {{ include "release.name" . }}-prometheus
   namespace: {{ .Release.Namespace }}
 spec:
-  version: v2.22.1
-  containers:
-  - env:
-    - name: COLLECTION_SERVICE
-      valueFrom:
-        configMapKeyRef:
-          key: fluentdMetrics
-          name: sumologic-configmap
-    - name: COLLECTION_NAMESPACE
-      valueFrom:
-        configMapKeyRef:
-          key: fluentdNamespace
-          name: sumologic-configmap
-    name: config-reloader
-  enableAdminAPI: false
-{{- if .Values.prometheusSpec.externalUrl }}
-  externalUrl: "{{ .Values.prometheusSpec.externalUrl }}"
-{{- end }}
-  listenLocal: false
-  logFormat: logfmt
-  logLevel: info
-  paused: false
-  podMonitorSelector: {}
-  portName: web
-  serviceAccountName: {{ .Release.Name }}-prometheus
-  replicas: 1
+{{ include "prometheus.defaultSpec" . | indent 2 }}
+
+  remoteWrite:
+{{ include "prometheus.remoteWrite" . | indent 2 }}
 
 {{- if .Values.prometheusSpec.additionalScrapeConfigs }}
   additionalScrapeConfigs:
-    name: {{ .Release.Name }}-prometheus-scrape-confg
+    name: {{ include "release.name" . }}-prometheus-scrape-confg
     key: additional-scrape-configs.yaml
 {{- end }}
-
-  remoteWrite:
-  # kube state metrics
-  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.state
-    remoteTimeout: 5s
-    writeRelabelConfigs:
-      - action: keep
-        regex: kube-state-metrics;{{ include "regex.metric.kubeStateMetrics" . }}
-        sourceLabels: [job,__name__]
-  # kubelet metrics
-  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.kubelet
-    remoteTimeout: 5s
-    writeRelabelConfigs:
-      - action: keep
-        regex: kubelet;{{ include "regex.metric.kubelet" . }}
-        sourceLabels: [job,__name__]
-  # cadvisor metrics
-  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.container
-    remoteTimeout: 5s
-    writeRelabelConfigs:
-      - action: keep
-        regex: kubelet;{{ include "regex.metric.cadvisor.all" . }}
-        sourceLabels: [job,__name__]
-  # node-exporter metrics
-  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.node
-    remoteTimeout: 5s
-    writeRelabelConfigs:
-      - action: keep
-        regex: node-exporter;{{ include "regex.metric.nodeExporter" . }}
-        sourceLabels: [job,__name__]
-{{- if .Values.prometheusSpec.additionalRemoteWrite }}
-{{ toYaml .Values.prometheusSpec.additionalRemoteWrite| indent 2 }}
-{{- end }}
-
-{{- if .Values.prometheusSpec.resources }}
-  resources:
-{{ toYaml .Values.prometheusSpec.resources | indent 4 }}
-{{- end }}
-{{- if .Values.prometheusSpec.scrapeInterval }}
-  scrapeInterval: "{{ .Values.prometheusSpec.scrapeInterval }}"
-{{ else }}
-  scrapeInterval: "60s"
-{{- end }}
-{{- if .Values.prometheusSpec.walCompression }}
-  walCompression: {{ .Values.prometheusSpec.walCompression }}
-{{- end }}
-
-{{- if .Values.prometheusSpec.retention }}
-  retention: {{ .Values.prometheusSpec.retention }}
-{{ else }}
-  retention: 6h
-{{ end }}
-  routePrefix: /
-
-{{- if .Values.prometheusSpec.ruleNamespaceSelector }}
-  ruleNamespaceSelector:
-{{ toYaml .Values.prometheusSpec.ruleNamespaceSelector | indent 4 }}
-{{- end }}
-
-{{- if .Values.prometheusSpec.ruleSelector }}
-  ruleSelector:
-{{ toYaml .Values.prometheusSpec.ruleSelector | indent 4 }}
-{{- end }}
-
-  securityContext:
-    fsGroup: 2000
-    runAsNonRoot: true
-    runAsUser: 1000
 
 {{- if .Values.prometheusSpec.serviceMonitorNamespaceSelector }}
   serviceMonitorNamespaceSelector:
@@ -117,7 +27,12 @@ spec:
 {{ toYaml .Values.prometheusSpec.serviceMonitorSelector | indent 4 }}
 {{- end }}
 
-{{- if .Values.prometheusSpec.storageSpec }}
-  storage:
-{{ toYaml .Values.prometheusSpec.storageSpec | indent 4 }}
+{{- if .Values.prometheusSpec.ruleNamespaceSelector }}
+  ruleNamespaceSelector:
+{{ toYaml .Values.prometheusSpec.ruleNamespaceSelector | indent 4 }}
+{{- end }}
+
+{{- if .Values.prometheusSpec.ruleSelector }}
+  ruleSelector:
+{{ toYaml .Values.prometheusSpec.ruleSelector | indent 4 }}
 {{- end }}

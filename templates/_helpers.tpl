@@ -111,3 +111,118 @@ Example Usage:
 {{ fail "\nPlease provide .Values.prometheusSpec.nodeExporter.namespace to indicate where Prometheus can scrape node-exporter" }}
 {{- end -}}
 {{- end -}}
+
+# ------------------------------------------------------------------------------
+
+{{- define "prometheus.remoteWrite" -}}
+{{- include "prometheus._defaultRemoteWrite" . }}
+{{- if .Values.prometheusSpec.additionalRemoteWrite }}
+{{ toYaml .Values.prometheusSpec.additionalRemoteWrite }}
+{{- end }}
+{{- end -}}
+
+{{- define "prometheus._defaultRemoteWrite" -}}
+# kube state metrics
+- url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.state
+  remoteTimeout: 5s
+  writeRelabelConfigs:
+    - action: keep
+      regex: kube-state-metrics;{{ include "regex.metric.kubeStateMetrics" . }}
+      sourceLabels: [job,__name__]
+# kubelet metrics
+- url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.kubelet
+  remoteTimeout: 5s
+  writeRelabelConfigs:
+    - action: keep
+      regex: kubelet;{{ include "regex.metric.kubelet" . }}
+      sourceLabels: [job,__name__]
+# cadvisor metrics
+- url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.container
+  remoteTimeout: 5s
+  writeRelabelConfigs:
+    - action: keep
+      regex: kubelet;{{ include "regex.metric.cadvisor.all" . }}
+      sourceLabels: [job,__name__]
+# node-exporter metrics
+- url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics.node
+  remoteTimeout: 5s
+  writeRelabelConfigs:
+    - action: keep
+      regex: node-exporter;{{ include "regex.metric.nodeExporter" . }}
+      sourceLabels: [job,__name__]
+{{- end -}}
+
+# ------------------------------------------------------------------------------
+{{/*
+Prometheus default spec
+
+Example Usage:
+{{- include "prometheus.defaultSpec" . }}
+
+*/}}
+{{- define "prometheus.defaultSpec" -}}
+version: v2.22.1
+containers:
+- env:
+  - name: COLLECTION_SERVICE
+    valueFrom:
+      configMapKeyRef:
+        key: fluentdMetrics
+        name: sumologic-configmap
+  - name: COLLECTION_NAMESPACE
+    valueFrom:
+      configMapKeyRef:
+        key: fluentdNamespace
+        name: sumologic-configmap
+  name: config-reloader
+enableAdminAPI: false
+listenLocal: false
+logFormat: logfmt
+logLevel: info
+paused: false
+podMonitorSelector: {}
+portName: web
+serviceAccountName: {{ .Release.Name }}-prometheus
+replicas: 1
+
+{{- if .Values.prometheusSpec.resources }}
+resources:
+{{ toYaml .Values.prometheusSpec.resources | indent 2 }}
+{{- end }}
+
+scrapeInterval: {{ include "prometheus.scrapeInterval" . }}
+retention: {{ include "prometheus.retention" . }}
+routePrefix: /
+
+{{- if .Values.prometheusSpec.walCompression }}
+walCompression: {{ .Values.prometheusSpec.walCompression }}
+{{- end }}
+
+securityContext:
+  fsGroup: 2000
+  runAsNonRoot: true
+  runAsUser: 1000
+
+{{- if .Values.prometheusSpec.storageSpec }}
+storage:
+{{ toYaml .Values.prometheusSpec.storageSpec | indent 2 }}
+{{- end }}
+
+{{- end -}}
+# ------------------------------------------------------------------------------
+
+{{- define "prometheus.scrapeInterval" -}}
+{{- if .Values.prometheusSpec.scrapeInterval }}
+{{- .Values.prometheusSpec.scrapeInterval }}
+{{- else }}
+"60s"
+{{- end }}
+{{- end }}
+
+{{- define "prometheus.retention" -}}
+{{- if .Values.prometheusSpec.retention }}
+{{- .Values.prometheusSpec.retention }}
+{{- else }}
+6h
+{{- end }}
+{{- end }}
