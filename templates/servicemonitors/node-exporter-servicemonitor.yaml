@@ -2,9 +2,9 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    app: {{ .Release.Name }}-collection-node-exporter
+    app: {{ include "release.name" . }}-collection-node-exporter
     k8c.collection.enabled: "true"
-  name: {{ .Release.Name }}-collection-node-exporter
+  name: {{ include "release.name" . }}-collection-node-exporter
   namespace: {{ .Release.Namespace }}
 spec:
   endpoints:

@@ -1,3 +1,7 @@
+{{- define "release.name" -}}
+{{- .Release.Name | trunc 32 | trimSuffix "-" }}
+{{- end -}}
+
 {{/*
 Kubelet metrics regex
 
