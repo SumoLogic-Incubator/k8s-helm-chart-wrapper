@@ -1,0 +1,23 @@
+{{- if .Values.prometheusSpec.additionalScrapeConfigs }}
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  labels:
+    app: {{ include "release.name" . }}
+  name: {{ include "release.name" . }}-prometheus-add
+  namespace: {{ .Release.Namespace }}
+spec:
+{{ include "prometheus.defaultSpec" . | indent 2 }}
+
+  remoteWrite:
+  - url: http://$(COLLECTION_SERVICE).$(COLLECTION_NAMESPACE).svc.cluster.local:9888/prometheus.metrics
+    remoteTimeout: 5s
+    writeRelabelConfigs:
+      - action: keep
+        regex: .*
+        sourceLabels: [__name__]
+
+  additionalScrapeConfigs:
+    name: {{ include "release.name" . }}-prometheus-scrape-confg
+    key: additional-scrape-configs.yaml
+{{- end }}

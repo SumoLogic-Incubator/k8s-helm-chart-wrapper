@@ -16,12 +16,6 @@ spec:
 {{ toYaml .Values.prometheusSpec.nodeSelector | indent 4 }}
 {{- end }}
 
-{{- if .Values.prometheusSpec.additionalScrapeConfigs }}
-  additionalScrapeConfigs:
-    name: {{ include "sumologic.fullname" . }}-prometheus-scrape-confg
-    key: additional-scrape-configs.yaml
-{{- end }}
-
 {{- if .Values.prometheusSpec.serviceMonitorNamespaceSelector }}
   serviceMonitorNamespaceSelector:
 {{ toYaml .Values.prometheusSpec.serviceMonitorNamespaceSelector | indent 4 }}
