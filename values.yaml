@@ -36,6 +36,11 @@ prometheusSpec:
       cpu: "2"
       memory: 8Gi
 
+  ## Define which Nodes the Pods are scheduled on.
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
+  nodeSelector: {}
+
   ## Namespaces to be selected for PrometheusRules discovery.
   ## If nil, select own namespace. Namespaces to be selected for ServiceMonitor discovery.
   ## See https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#namespaceselector for usage

@@ -11,6 +11,11 @@ spec:
   remoteWrite:
 {{ include "prometheus.remoteWrite" . | indent 2 }}
 
+{{- if .Values.prometheusSpec.nodeSelector }}
+  nodeSelector:
+{{ toYaml .Values.prometheusSpec.nodeSelector | indent 4 }}
+{{- end }}
+
 {{- if .Values.prometheusSpec.additionalScrapeConfigs }}
   additionalScrapeConfigs:
     name: {{ include "release.name" . }}-prometheus-scrape-confg
